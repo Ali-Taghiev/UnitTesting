@@ -5,12 +5,12 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace UTApplication.Services;
-    public class IdentityValidator
-    {
+public class IdentityValidator : IIdentityValidator
+{
 
     public bool IsValid(string IdentityNum)
     {
         return true;
     }
-    }
+}
 

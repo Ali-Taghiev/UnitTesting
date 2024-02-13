@@ -12,17 +12,21 @@ public class ApplicationEvaluator
 {
     private const int MinAge = 18;
     private const int autoAcceptYearsOfExperience = 15;
-    private List<string> techStackList = new(){"C","C#","C++","Java"};
-    private IdentityValidator identityValidator;
-    public ApplicationEvaluator()
+    private List<string> techStackList = new() { "C", "C#", "C++", "Java" };
+    private  readonly IIdentityValidator identityValidator;
+    public ApplicationEvaluator(IIdentityValidator identityValidator)
     {
-        identityValidator = new IdentityValidator();
+        this.identityValidator = identityValidator;
     }
 
     public ApplicationResult Evaluate(JobApplication form)
     {
         if(form.Applicant.Age < MinAge)
             return ApplicationResult.AutoRejected;
+
+        var validIdentity = identityValidator.IsValid(form.Applicant.IdentityNumber);
+        if (!validIdentity)
+            return ApplicationResult.TransferredToHR;
 
         var sr = GetTechStackSimilarityRate(form.TechStackList);
 
@@ -32,9 +36,7 @@ public class ApplicationEvaluator
         if (sr > 75 && form.YearsOfExperience>=autoAcceptYearsOfExperience)
             return ApplicationResult.AutoAccepted;
 
-        var validIdentity = identityValidator.IsValid(form.Applicant.IdentityNumber);
-        if (!validIdentity)
-            return ApplicationResult.TransferredToHR;
+        
 
         return ApplicationResult.AutoAccepted;
 
