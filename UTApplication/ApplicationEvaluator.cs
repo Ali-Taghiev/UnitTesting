@@ -9,10 +9,15 @@ namespace UTApplication;
 
 public class ApplicationEvaluator
 {
+    private const int MinAge = 18;
 
     public ApplicationResult Evaluate(JobApplication form)
     {
+        if(form.Applicant.Age < MinAge)
+            return ApplicationResult.AutoRejected;
+
         return ApplicationResult.AutoAccepted;
+
     }
 
     public enum ApplicationResult
