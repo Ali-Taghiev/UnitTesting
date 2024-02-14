@@ -24,6 +24,12 @@ public class ApplicationEvaluator
         if(form.Applicant.Age < MinAge)
             return ApplicationResult.AutoRejected;
 
+        identityValidator.ValidationMode = form.Applicant.Age > 50 ? ValidationMode.Detailed : ValidationMode.Quick;
+
+        if (identityValidator.Country != "Azerbaijan")
+            return ApplicationResult.TransferredToCTO;
+
+
         var validIdentity = identityValidator.IsValid(form.Applicant.IdentityNumber);
         if (!validIdentity)
             return ApplicationResult.TransferredToHR;

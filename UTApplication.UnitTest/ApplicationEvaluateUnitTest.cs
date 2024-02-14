@@ -36,8 +36,9 @@ namespace UTApplication.UnitTest
         {
             //Arrange
             var moqValidator = new Mock<IIdentityValidator>();
-            moqValidator.Setup(i=>i.IsValid(It.IsAny<string>())).Returns(true);    
-            
+            moqValidator.Setup(i=>i.IsValid(It.IsAny<string>())).Returns(true);
+            moqValidator.Setup(i => i.Country).Returns("Azerbaijan");
+
             var evaluater = new ApplicationEvaluator(moqValidator.Object);
             var form = new JobApplication()
             {
@@ -55,7 +56,7 @@ namespace UTApplication.UnitTest
             var Result = evaluater.Evaluate(form);
             //Assert
 
-            Assert.AreEqual(Result, ApplicationResult.AutoRejected);
+            Assert.AreEqual(ApplicationResult.AutoRejected, Result);
 
 
         }
@@ -65,6 +66,8 @@ namespace UTApplication.UnitTest
             //Arrange
             var moqValidator = new Mock<IIdentityValidator>();
             moqValidator.Setup(i => i.IsValid(It.IsAny<string>())).Returns(true);
+
+            moqValidator.Setup(i => i.Country).Returns("Azerbaijan");
             var evaluater = new ApplicationEvaluator(moqValidator.Object);
             var form = new JobApplication()
             {
@@ -82,7 +85,7 @@ namespace UTApplication.UnitTest
             var Result = evaluater.Evaluate(form);
             //Assert
 
-            Assert.AreEqual(Result, ApplicationResult.AutoAccepted);
+            Assert.AreEqual(ApplicationResult.AutoAccepted,Result);
 
 
 
@@ -93,6 +96,7 @@ namespace UTApplication.UnitTest
             //Arrange
             var moqValidator = new Mock<IIdentityValidator>();
             moqValidator.Setup(i => i.IsValid(It.IsAny<string>())).Returns(false);
+            moqValidator.Setup(i => i.Country).Returns("Azerbaijan");
             var evaluater = new ApplicationEvaluator(moqValidator.Object);
             var form = new JobApplication()
             {
@@ -108,8 +112,65 @@ namespace UTApplication.UnitTest
             var Result = evaluater.Evaluate(form);
             //Assert
 
-            Assert.AreEqual(Result, ApplicationResult.TransferredToHR);
+            Assert.AreEqual(ApplicationResult.TransferredToHR, Result);
 
+
+        }
+
+        [Test]
+        public void Application_WithOfficeLocation_TransferredToCTO()  //UnitOfWork_Condition_ExpectedResult
+        {
+            //Arrange
+            var moqValidator = new Mock<IIdentityValidator>();
+            moqValidator.Setup(i => i.Country).Returns("Turkey");
+            var evaluater = new ApplicationEvaluator(moqValidator.Object);
+            var form = new JobApplication()
+            {
+                Applicant = new Applicant()
+                {
+                    Age = 19,
+
+                }
+
+
+            };
+            //Action
+
+            var Result = evaluater.Evaluate(form);
+            //Assert
+
+            Assert.AreEqual(ApplicationResult.TransferredToCTO, Result);
+
+
+        }
+
+        [Test]
+
+        public void Application_WithOver50_ValidationModeToDetailed()
+        {
+
+            //Arrange
+            var moqValidator = new Mock<IIdentityValidator>();
+
+            moqValidator.SetupProperty(i => i.ValidationMode); //Persist Data
+
+            var evaluater = new ApplicationEvaluator(moqValidator.Object);
+            var form = new JobApplication()
+            {
+                Applicant = new Applicant()
+                {
+                    Age = 51,
+
+                }
+
+
+            };
+            //Action
+
+            var Result = evaluater.Evaluate(form);
+            //Assert
+
+            Assert.AreEqual(ValidationMode.Detailed,moqValidator.Object.ValidationMode);
 
         }
 
