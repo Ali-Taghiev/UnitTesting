@@ -3,6 +3,7 @@ using UTApplication.Models;
 using static UTApplication.ApplicationEvaluator;
 using Moq;
 using UTApplication.Services;
+using FluentAssertions;
 namespace UTApplication.UnitTest
 {
     public class ApplicationEvaluateUnitTest
@@ -27,7 +28,8 @@ namespace UTApplication.UnitTest
              var Result = evaluater.Evaluate(form);
             //Assert
 
-            Assert.AreEqual(Result, ApplicationResult.AutoRejected);
+            //Assert.AreEqual(Result, ApplicationResult.AutoRejected);
+            Result.Should().Be(ApplicationResult.AutoRejected);
 
 
         }
@@ -56,7 +58,8 @@ namespace UTApplication.UnitTest
             var Result = evaluater.Evaluate(form);
             //Assert
 
-            Assert.AreEqual(ApplicationResult.AutoRejected, Result);
+            //Assert.AreEqual(ApplicationResult.AutoRejected, Result);
+            Result.Should().Be(ApplicationResult.AutoRejected);
 
 
         }
@@ -85,7 +88,8 @@ namespace UTApplication.UnitTest
             var Result = evaluater.Evaluate(form);
             //Assert
 
-            Assert.AreEqual(ApplicationResult.AutoAccepted,Result);
+            //Assert.AreEqual(ApplicationResult.AutoAccepted,Result);
+            Result.Should().Be(ApplicationResult.AutoAccepted);
 
 
 
@@ -112,7 +116,8 @@ namespace UTApplication.UnitTest
             var Result = evaluater.Evaluate(form);
             //Assert
 
-            Assert.AreEqual(ApplicationResult.TransferredToHR, Result);
+            //Assert.AreEqual(ApplicationResult.TransferredToHR, Result);
+            Result.Should().Be(ApplicationResult.TransferredToHR);
 
 
         }
@@ -139,7 +144,8 @@ namespace UTApplication.UnitTest
             var Result = evaluater.Evaluate(form);
             //Assert
 
-            Assert.AreEqual(ApplicationResult.TransferredToCTO, Result);
+            //Assert.AreEqual(ApplicationResult.TransferredToCTO, Result);
+            Result.Should().Be(ApplicationResult.TransferredToCTO);
 
 
         }
@@ -170,7 +176,79 @@ namespace UTApplication.UnitTest
             var Result = evaluater.Evaluate(form);
             //Assert
 
-            Assert.AreEqual(ValidationMode.Detailed,moqValidator.Object.ValidationMode);
+            //Assert.AreEqual(ValidationMode.Detailed,moqValidator.Object.ValidationMode);
+            moqValidator.Object.ValidationMode.Should().Be(ValidationMode.Detailed);
+
+        }
+        [Test]
+        public void Application_WithNullApplicant_ThrowArgumentNullException()
+        {
+
+            //Arrange
+            var moqValidator = new Mock<IIdentityValidator>();
+            var evaluater = new ApplicationEvaluator(moqValidator.Object);
+            var form = new JobApplication();
+            //Action
+
+            Action ResultAction = () =>evaluater.Evaluate(form);
+            //Assert
+            ResultAction.Should().Throw<ArgumentNullException>();
+          
+        }
+        [Test]
+        public void Application_WithDefaultValue_IsValidCalled()
+        {
+            //Arrange
+            var moqValidator = new Mock<IIdentityValidator>();
+            moqValidator.Setup(i => i.Country).Returns("Azerbaijan");
+
+            var evaluater = new ApplicationEvaluator(moqValidator.Object);
+            var form = new JobApplication()
+            {
+                Applicant = new Applicant()
+                {
+                    Age = 19,
+                    IdentityNumber="555"
+                },
+                
+
+
+
+            };
+            //Action
+
+            var Result = evaluater.Evaluate(form);
+            //Assert
+
+            moqValidator.Verify(i => i.IsValid("555"),"IsValid Method should be called with 555"); 
+            //moqValidator.Verify(i => i.IsValid(It.IsAny<string>()));
+
+        }
+        [Test]
+        public void Application_WithYoungAge_IsValidNeverCalled()
+        {
+            //Arrange
+            var moqValidator = new Mock<IIdentityValidator>();
+            moqValidator.Setup(i => i.Country).Returns("Azerbaijan");
+
+            var evaluater = new ApplicationEvaluator(moqValidator.Object);
+            var form = new JobApplication()
+            {
+                Applicant = new Applicant()
+                {
+                    Age = 11
+                },
+
+
+
+
+            };
+            //Action
+
+            var Result = evaluater.Evaluate(form);
+            //Assert
+
+            moqValidator.Verify(i => i.IsValid(It.IsAny<string>()),Times.Never); //OR //Times.Exactly(0)
 
         }
 

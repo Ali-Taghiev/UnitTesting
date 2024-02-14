@@ -21,6 +21,9 @@ public class ApplicationEvaluator
 
     public ApplicationResult Evaluate(JobApplication form)
     {
+        if (form.Applicant is null)
+            throw new ArgumentNullException();
+
         if(form.Applicant.Age < MinAge)
             return ApplicationResult.AutoRejected;
 
